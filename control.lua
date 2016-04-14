@@ -4,6 +4,7 @@ require( "defines" )
 -- Tables to keep track of data
 -------------------------------
 local TimeLapses = {}
+local flashback = -1
 -------------------------------
 -- Helper functions
 -------------------------------
@@ -141,7 +142,25 @@ local function addTimeLapse(event)
 			caption = "Show Entity Info? (Alt-Mode)",
 			name = "TimeLapseMaker_AltMode_label"
 		}
+
+		NightlessFlow = AddMenu.add{
+			type = "flow",
+			direction = "horizontal",
+			name = "TimeLapseMaker_Nightless_flow"
+		}
 		
+		NightlessFlow.add{
+			type = "checkbox",
+			state = false,
+			name = "TimeLapseMaker_Nightless_checkbox"
+		}
+		
+		NightlessFlow.add{
+			type = "label",
+			caption = "Nightless (always day in screenshots)",
+			name = "TimeLapseMaker_Nightless_label"
+		}
+
 		ButtonFlow = AddMenu.add{
 			type = "flow",
 			direction = "horizontal",
@@ -172,6 +191,7 @@ local function AcceptNew(event)
 	local del = tonumber(frame["TimeLapseMaker_Delay_flow"]["TimeLapseMaker_Delay_textfield"].text)
 	local dur = tonumber(frame["TimeLapseMaker_Duration_flow"]["TimeLapseMaker_Duration_textfield"].text)
 	local alt = frame["TimeLapseMaker_AltMode_flow"]["TimeLapseMaker_AltMode_checkbox"].state
+	local night = frame["TimeLapseMaker_Nightless_flow"]["TimeLapseMaker_Nightless_checkbox"].state
 	local pos = ply.position
 	
 	if not nm or nm == "" then
@@ -195,6 +215,7 @@ local function AcceptNew(event)
 			altMode = alt,
 			position = pos,
 			name = nm,
+			nightless = night,
 			start = game.tick
 		})
 		frame.destroy()
@@ -256,14 +277,6 @@ local function deleteTimeLapse (event)
 end
 
 -------------------------------
--- Update gui
--------------------------------
-
--------------------------------
--- Main menu
--------------------------------
-
--------------------------------
 -- Events
 -------------------------------
 
@@ -299,9 +312,18 @@ script.on_event(defines.events.on_gui_click ,function(event)
 end)
 
 script.on_event(defines.events.on_tick, function(event)
+	--can you tell i don't understand the precedence of "not"???
+	if ((not (flashback == nil)) and (not (flashback == -1))) then -- -1 is dummmy value
+		game.daytime = flashback
+		flashback = -1
+	end
 	for i, v in ipairs(TimeLapses) do
 		local dif = game.tick - v.start
 		if dif % v.delay == 0 then
+			if v.nightless then
+				flashback = game.daytime
+				game.daytime = 0
+			end
 			game.take_screenshot{
 				position = v.position,
 				zoom = v.zoom,
