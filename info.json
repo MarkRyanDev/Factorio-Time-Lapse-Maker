@@ -1,10 +1,10 @@
 {
   "name": "TimeLapseMaker",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "title": "TimeLapseMaker",
   "author": "LithDev",
-  "contact": "",
-  "homepage": "",
+  "contact": "MarkRyanDev@gmail.com",
+  "homepage": "https://github.com/MarkRyanDev/TimeLapseMaker_0.1.2",
   "description": "Adds a simple tool to create Time Lapses",
   "dependencies": ["base"]
 }
