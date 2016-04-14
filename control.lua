@@ -196,7 +196,7 @@ local function AcceptNew(event)
 	
 	if not nm or nm == "" then
 		ply.print("invalid name")
-	elseif FindByName(TimeLapses, nm)	then
+	elseif FindByName(TimeLapses[event.player_index], nm)	then
 		ply.print("Name already used")
 	elseif not zm or zm <= 0 then
 		ply.print("invalid zoom")
@@ -207,7 +207,7 @@ local function AcceptNew(event)
 	elseif not dur or dur < 0 then
 		ply.print("invalid duration")
 	else 
-		table.insert(TimeLapses, {
+		table.insert(TimeLapses[event.player_index], {
 			path = pth,
 			delay = math.floor(del * 60 + .5),
 			duration = math.floor(dur * 60 + .5),
@@ -250,7 +250,7 @@ local function MainMenu(event)
 			name = "TimeLapseMaker_MainMenu_Listflow"
 		}
 		
-		for i, v in ipairs(TimeLapses) do
+		for i, v in ipairs(TimeLapses[event.player_index]) do
 			local flow = List.add{
 				type = "flow",
 				direction = "horizontal",
@@ -272,7 +272,7 @@ local function MainMenu(event)
 end
 
 local function deleteTimeLapse (event)
-	table.remove(TimeLapses, event.element.index)
+	table.remove(TimeLapses[event.player_index], event.element.index)
 	event.element.parent.destroy()
 end
 
@@ -286,6 +286,7 @@ script.on_event( defines.events.on_player_created, function( event )
 		caption = "TimeLapses",
 		name = "TimeLapseMaker_MainMenu"
 	}
+	TimeLapses[event.player_index] = {} -- create player's table of TimeLapses	
 end)
 
 local gui_element_callbacks = {
@@ -317,22 +318,25 @@ script.on_event(defines.events.on_tick, function(event)
 		game.daytime = flashback
 		flashback = -1
 	end
-	for i, v in ipairs(TimeLapses) do
-		local dif = game.tick - v.start
-		if dif % v.delay == 0 then
-			if v.nightless then
-				flashback = game.daytime
-				game.daytime = 0
+	for i, p in ipairs(TimeLapses) do
+		for j, v in ipairs(TimeLapses[i]) do
+			local dif = game.tick - v.start
+			if dif % v.delay == 0 then
+				if v.nightless then
+					flashback = game.daytime
+					game.daytime = 0
+				end
+				game.take_screenshot{
+					player = game.get_player(i),
+					position = v.position,
+					zoom = v.zoom,
+					path = v.path .. "/" .. string.format("%03d", dif / v.delay ) .. ".png",
+					show_entity_info = v.altMode
+				}
 			end
-			game.take_screenshot{
-				position = v.position,
-				zoom = v.zoom,
-				path = v.path .. "\\" .. string.format("%03d", dif / v.delay ) .. ".png",
-				show_entity_info = v.altMode
-			}
-		end
-		if not v.duration == 0 and dif >= v.duration then -- if duration is 0, never remove it
-			table.remove(TimeLapses, i)
+			if not v.duration == 0 and dif >= v.duration then -- if duration is 0, never remove it
+				table.remove(TimeLapses[i], j)
+			end
 		end
 	end
 end)
