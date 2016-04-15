@@ -259,8 +259,8 @@ local function MainMenu(event)
 			flow.add{
 				type = "button",
 				caption = "x",
-				name = "TimeLapseMaker_" .. i .. "_delete",
-				index = i
+				name = "TimeLapseMaker_" .. i .. "_delete"
+				--index = i
 			}
 			flow.add{
 				type = "label",
@@ -334,7 +334,7 @@ script.on_event(defines.events.on_tick, function(event)
 					show_entity_info = v.altMode
 				}
 			end
-			if not v.duration == 0 and dif >= v.duration then -- if duration is 0, never remove it
+			if (not (v.duration == 0)) and dif >= v.duration then -- if duration is 0, never remove it
 				table.remove(TimeLapses[i], j)
 			end
 		end
